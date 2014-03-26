@@ -41,34 +41,62 @@ var hand = {
         return v < 10 ? "0" + v : v;
     },
 
+    /*
+     * Set hand and value.
+     */
     set: function(s) {
-        var tickTo = (s >= this.ticks ? s - 0.001 : s);
-        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 600, "<");
-        this.value = s;
+        if(s > this.ticks) s = this.ticks;
+        if(s < 0) s = 0;
 
+        // Set the value, we want to tick to that.
+        this.value = s;
+        var tickTo = this.value;
+
+        // Value on its limit, sme adjustments.
+        if (this.value === this.ticks)  {
+            this.value = 0;
+            tickTo -= 0.01;
+            effect = "";
+        }
+
+        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 600, "<");
         this.htmlElement.innerHTML = this.writeModifier(this.value);
     },
 
+    /**
+     * The ticker.
+     */
     tick: function() {
-        this.value++;
-        var tickTo = (this.value >= this.ticks ? this.value - 0.001 : this.value);
-
         var self = this;
         var cb = function() {};
         var effect = "elastic";
 
-        if(this.value === this.ticks && this.useAnimationCb) {
-            effect = "bounce";
-            cb = function() { self.path.attr({ hand: [self.r, 0, 0] }) };
+        // Increase the value, we want to tick to that.
+        this.value++;
+        var tickTo = this.value;
+
+        // Value on its limit, sme adjustments.
+        if (this.value === this.ticks)  {
+            this.value = 0;
+            tickTo -= 0.01;
+            effect = "";
         }
 
-        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 400, effect, cb);
-        if (this.value >= this.ticks) this.value = this.startTick;
+        // Reset our hand after ticking. On different ticks for time and date.
+        if(this.value === this.startTick) {
+            effect = "";
+            cb = function() { self.path.attr({ hand: [self.r, 2 * Math.PI * self.value / self.ticks, 0] }) };
+        }
 
+        // tick
+        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 400, effect, cb);
         this.htmlElement.innerHTML = this.writeModifier(this.value);
     },
 
 
+    /**
+     *  draws the tick nr of dots for this hand on the clock
+     */
     drawDots: function () {
         var dots = paper.set();
         for(var d = 0; d < this.ticks; d++) {
@@ -80,6 +108,9 @@ var hand = {
         return dots;
     },
 
+    /**
+     * Clears all dots for this hand.
+     */
     clearDots: function() {
         for(var d = 0; d < this.dots.length; d++) {
             this.dots[d].node.remove();
@@ -88,14 +119,12 @@ var hand = {
     }
 }
 
-
 var seconds = Object.create(hand);
 seconds.r = 250;
 seconds.hue = 0;
 seconds.ticks = 60;
-seconds.startTick = seconds.value = 0;
+seconds.startTick = 0;
 seconds.htmlElement = document.getElementById("seconds");
-seconds.useAnimationCb = true;
 
 clock.push(seconds.drawDots());
 seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
@@ -108,9 +137,8 @@ var minutes = Object.create(hand);
 minutes.r = 200;
 minutes.hue = 1/5;
 minutes.ticks = 60;
-minutes.startTick = minutes.value = 0;
+minutes.startTick = 0;
 minutes.htmlElement = document.getElementById("minutes");
-minutes.useAnimationCb = true;
 
 clock.push(minutes.drawDots());
 minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
@@ -123,9 +151,8 @@ var hours = Object.create(hand);
 hours.r = 150;
 hours.hue = 2/5;
 hours.ticks = 24;
-hours.startTick = hours.value = 0;
+hours.startTick = 0;
 hours.htmlElement = document.getElementById("hours");
-hours.useAnimationCb = true;
 
 clock.push(hours.drawDots());
 hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
@@ -138,12 +165,11 @@ var days = Object.create(hand);
 days.r = 100;
 days.hue = 3/5;
 days.ticks = daysInMonth(now.getMonth(), now.getYear());
-days.startTick = days.value = 1;
+days.startTick = 1;
 days.htmlElement = document.getElementById("days");
 days.writeModifier = function(v) {
     return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][now.getDay()] + " " + v;
 }
-days.useAnimationCb = false;
 
 clock.push(days.drawDots());
 days.path = paper.path().attr({hand: [100, 0, 0], "stroke-width": "20px"});
@@ -155,14 +181,13 @@ hands.push(days);
 var months = Object.create(hand);
 months.r = 50;
 months.hue = 4/5;
-months.ticks = 13;
-months.startTick = months.value = 1;
+months.ticks = 12;
+months.startTick = 1;
 months.htmlElement = document.getElementById("months");
 months.writeModifier = function(v) {
     return ["januari", "februari", "maart", "april", "mei", "juni", 
             "juli", "augustus", "september", "oktober", "november", "december"][now.getMonth()];
 }
-months.useAnimationCb = false;
 
 clock.push(months.drawDots());
 months.path = paper.path().attr({hand: [50, 0, 0], "stroke-width": "20px"});
@@ -177,20 +202,20 @@ seconds.set(now.getSeconds());
 minutes.set(now.getMinutes());
 hours.set(now.getHours());
 days.set(now.getDate());
-months.set(now.getMonth() + 1);
+months.set(now.getMonth());
 
 var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
 // 30 november
-// seconds.set(57);
-// minutes.set(59);
-// hours.set(23);
-// days.ticks = daysInMonth(11, now.getYear());
-// days.set(31);
-// months.set(11);
+seconds.set(57);
+minutes.set(59);
+hours.set(23);
+days.ticks = daysInMonth(10, now.getFullYear());
+days.set(30);
+months.set(11);
 
-// 31 december
+// 31 december,
 // seconds.set(57);
 // minutes.set(59);
 // hours.set(23);
