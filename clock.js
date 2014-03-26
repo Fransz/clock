@@ -18,7 +18,7 @@ paper.rect(0, 0, 800, 600).attr({fill: "black"});
 var now = new Date();
 
 function daysInMonth(month, year) {
-    return new Date(year, month, 0).getDate();
+    return new Date(year, month + 1, 0).getDate();
 }
 
 paper.customAttributes.hand = function(r, a, color) {
@@ -42,7 +42,8 @@ var hand = {
     },
 
     set: function(s) {
-        this.path.animate({hand: [this.r, 2 * Math.PI * (s === this.ticks ? s - 0.01 : s) / this.ticks, this.hue]}, 600, "<");
+        var tickTo = (s >= this.ticks ? s - 0.001 : s);
+        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 600, "<");
         this.value = s;
 
         this.htmlElement.innerHTML = this.writeModifier(this.value);
@@ -50,6 +51,7 @@ var hand = {
 
     tick: function() {
         this.value++;
+        var tickTo = (this.value >= this.ticks ? this.value - 0.001 : this.value);
 
         var self = this;
         var cb = function() {};
@@ -60,8 +62,8 @@ var hand = {
             cb = function() { self.path.attr({ hand: [self.r, 0, 0] }) };
         }
 
-        this.path.animate({hand: [this.r, 2 * Math.PI * this.value / this.ticks, this.hue]}, 400, effect, cb);
-        if (this.value >= this.ticks) this.value -= this.ticks;
+        this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 400, effect, cb);
+        if (this.value >= this.ticks) this.value = this.startTick;
 
         this.htmlElement.innerHTML = this.writeModifier(this.value);
     },
@@ -91,7 +93,7 @@ var seconds = Object.create(hand);
 seconds.r = 250;
 seconds.hue = 0;
 seconds.ticks = 60;
-seconds.value = 0;
+seconds.startTick = seconds.value = 0;
 seconds.htmlElement = document.getElementById("seconds");
 seconds.useAnimationCb = true;
 
@@ -106,7 +108,7 @@ var minutes = Object.create(hand);
 minutes.r = 200;
 minutes.hue = 1/5;
 minutes.ticks = 60;
-minutes.value = 0;
+minutes.startTick = minutes.value = 0;
 minutes.htmlElement = document.getElementById("minutes");
 minutes.useAnimationCb = true;
 
@@ -121,7 +123,7 @@ var hours = Object.create(hand);
 hours.r = 150;
 hours.hue = 2/5;
 hours.ticks = 24;
-hours.value = 0;
+hours.startTick = hours.value = 0;
 hours.htmlElement = document.getElementById("hours");
 hours.useAnimationCb = true;
 
@@ -135,8 +137,8 @@ hands.push(hours);
 var days = Object.create(hand);
 days.r = 100;
 days.hue = 3/5;
-days.ticks = daysInMonth(now.getMonth() + 1, now.getYear());
-days.value = 0;
+days.ticks = daysInMonth(now.getMonth(), now.getYear());
+days.startTick = days.value = 1;
 days.htmlElement = document.getElementById("days");
 days.writeModifier = function(v) {
     return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][now.getDay()] + " " + v;
@@ -153,12 +155,12 @@ hands.push(days);
 var months = Object.create(hand);
 months.r = 50;
 months.hue = 4/5;
-months.ticks = 12;
-months.value = 0;
+months.ticks = 13;
+months.startTick = months.value = 1;
 months.htmlElement = document.getElementById("months");
 months.writeModifier = function(v) {
     return ["januari", "februari", "maart", "april", "mei", "juni", 
-            "juli", "augustus", "september", "oktober", "november", "december"][v - 1];
+            "juli", "augustus", "september", "oktober", "november", "december"][now.getMonth()];
 }
 months.useAnimationCb = false;
 
@@ -171,20 +173,32 @@ hands.push(months);
 // transform everything.
 clock.transform(transform);
 
-seconds.set(now.getSeconds());
-minutes.set(now.getMinutes());
-hours.set(now.getHours());
-days.set(now.getDate());
-months.set(now.getMonth() );
+/*
+ * seconds.set(now.getSeconds());
+ * minutes.set(now.getMinutes());
+ * hours.set(now.getHours());
+ * days.set(now.getDate());
+ * months.set(now.getMonth() );
+ */
 
 var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
-seconds.set(57);
-minutes.set(59);
-hours.set(23);
-days.set(31);
-months.set(12);
+// 30 november
+// seconds.set(57);
+// minutes.set(59);
+// hours.set(23);
+// days.ticks = daysInMonth(11, now.getYear());
+// days.set(31);
+// months.set(12);
+
+// 31 december
+// seconds.set(57);
+// minutes.set(59);
+// hours.set(23);
+// days.ticks = daysInMonth(11, now.getYear());
+// days.set(31);
+// months.set(13);
 
 
 function tick() {
@@ -192,13 +206,12 @@ function tick() {
     var theHand = 0;
     do {
         hands[theHand].tick();
-    } while (hands[theHand].value === 0 && ++theHand < hands.length)
+    } while (hands[theHand].value === hands[theHand].startTick && ++theHand < hands.length)
 
 
     // If we have a new month we have to recalculate days.
-    if(days.value === 1) {
+    if(days.value === days.startTick) {
        days.ticks = daysInMonth(months.value, year);
-       days.ticks = 4;
 
        days.clearDots();
        clock.push(days.drawDots());
