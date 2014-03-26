@@ -173,13 +173,11 @@ hands.push(months);
 // transform everything.
 clock.transform(transform);
 
-/*
- * seconds.set(now.getSeconds());
- * minutes.set(now.getMinutes());
- * hours.set(now.getHours());
- * days.set(now.getDate());
- * months.set(now.getMonth() );
- */
+seconds.set(now.getSeconds());
+minutes.set(now.getMinutes());
+hours.set(now.getHours());
+days.set(now.getDate());
+months.set(now.getMonth() + 1);
 
 var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
@@ -190,7 +188,7 @@ document.getElementById("years").innerHTML = now.getFullYear();
 // hours.set(23);
 // days.ticks = daysInMonth(11, now.getYear());
 // days.set(31);
-// months.set(12);
+// months.set(11);
 
 // 31 december
 // seconds.set(57);
@@ -198,7 +196,7 @@ document.getElementById("years").innerHTML = now.getFullYear();
 // hours.set(23);
 // days.ticks = daysInMonth(11, now.getYear());
 // days.set(31);
-// months.set(13);
+// months.set(12);
 
 
 function tick() {
