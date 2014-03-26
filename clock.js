@@ -6,8 +6,16 @@ if(typeof Object.create !== "function") {
     }
 }
 
+// Globals 
 var paper = Raphael("canvas", 821, 621);
+
+var clock = paper.set();
+var hands = [];
+var transform = "m0,-1,-1,0,400,300";
+
 paper.rect(10, 10, 810, 610).attr({fill: "black"});
+
+
 
 paper.customAttributes.hand = function(r, a, color) {
 
@@ -23,9 +31,8 @@ paper.customAttributes.hand = function(r, a, color) {
     };
 }
 
-var clock = paper.set();
-var transform = "m0,-1,-1,0,400,300";
 
+// Our hands.
 var hand = {
     set: function(s) {
         this.path.animate({hand: [this.r, 2 * Math.PI * s / this.ticks, this.hue]}, 600, "<");
@@ -60,6 +67,7 @@ var hand = {
     }
 }
 
+
 var seconds = Object.create(hand);
 seconds.r = 250;
 seconds.hue = 0;
@@ -69,6 +77,9 @@ seconds.value = 0;
 clock.push(seconds.dots());
 seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
 clock.push(seconds.path);
+
+hands.push(seconds);
+
 
 var minutes = Object.create(hand);
 minutes.r = 200;
@@ -80,6 +91,9 @@ clock.push(minutes.dots());
 minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
 clock.push(minutes.path);
 
+hands.push(minutes);
+
+
 var hours = Object.create(hand);
 hours.r = 150;
 hours.hue = 2/3;
@@ -90,14 +104,28 @@ clock.push(hours.dots());
 hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
 clock.push(hours.path);
 
+hands.push(hours);
+
+
+// transform everything.
 clock.transform(transform);
 
-var now = new Date();
 
-seconds.set(57);
-minutes.set(59);
-hours.set(11);
+// Time.
+var now = new Date();
+seconds.set(now.getSeconds());
+minutes.set(now.getMinutes());
+hours.set(now.getHours());
+/*
+ * seconds.set(57);
+ * minutes.set(59);
+ * hours.set(23);
+ */
+
 function tick() {
-    seconds.tick();
+    var theHand = 0;
+    do {
+        hands[theHand].tick();
+    } while (hands[theHand].value === 0 && ++theHand < hands.length)
 }
 setInterval(tick, 1000);
