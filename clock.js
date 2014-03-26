@@ -9,7 +9,8 @@ paper.customAttributes.hand = function(r, a, color) {
     var ey = -Math.sin(a) * r;
 
     return {
-        path : "M" + r + ",0 A" + r + "," + r + " 0 " + large + ",0 " + ex + "," + ey,
+        // path : "M" + r + ",0 A" + r + "," + r + " 0 " + large + ",0 " + ex + "," + ey,
+        path : [ ["M", r, 0], ["A", r, r, 0, large, 0, ex, ey] ],
         stroke: hsb
     };
 }
@@ -44,7 +45,7 @@ var seconds = {
 
         if(this.seconds === this.ticks) {
             effect = "bounce";
-            cb = function() { self.path.attr({ hand: [this.r, 0, 0] }) };
+            cb = function() { self.path.attr({ hand: [self.r, 0, 0] }) };
         }
 
         this.path.animate({hand: [this.r, 2 * Math.PI * this.seconds / this.ticks, this.hue]}, 400, effect, cb);
