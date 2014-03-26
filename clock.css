@@ -1,0 +1,16 @@
+#written {
+    width:100%;
+    margin:0 auto 0 auto;
+
+    font-size: 48px;
+    background-color: black;
+    color:white;
+}
+
+#days, #months, #years {
+    padding:0px 5px;
+}
+
+.separator {
+    padding:0px 0px;
+}
