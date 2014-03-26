@@ -16,6 +16,9 @@ var transform = "m0,-1,-1,0,400,300";
 paper.rect(10, 10, 810, 610).attr({fill: "black"});
 
 
+function daysInMonth(month, year) {
+    return new Date(year, month, 0).getDate();
+}
 
 paper.customAttributes.hand = function(r, a, color) {
 
@@ -56,14 +59,22 @@ var hand = {
 
     },
 
-    dots: function () {
+    drawDots: function () {
         var dots = paper.set();
         for(var d = 0; d < this.ticks; d++) {
             dots.push(paper.circle(Math.cos(2 * Math.PI * d / this.ticks) * this.r, 
                                 Math.sin(2 * Math.PI * d / this.ticks) * this.r, 
                                 2).attr({fill: "#aaaaaa", "stroke-width": "0px"}));
         }
+        this.dots = dots;
         return dots;
+    },
+
+    clearDots: function() {
+        for(var d = 0; d < this.dots.length; d++) {
+            this.dots[d].node.remove();
+        }
+        this.dots.clear();
     }
 }
 
@@ -74,7 +85,7 @@ seconds.hue = 0;
 seconds.ticks = 60;
 seconds.value = 0;
 
-clock.push(seconds.dots());
+clock.push(seconds.drawDots());
 seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
 clock.push(seconds.path);
 
@@ -83,11 +94,11 @@ hands.push(seconds);
 
 var minutes = Object.create(hand);
 minutes.r = 200;
-minutes.hue = 1/3;
+minutes.hue = 1/5;
 minutes.ticks = 60;
 minutes.value = 0;
 
-clock.push(minutes.dots());
+clock.push(minutes.drawDots());
 minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
 clock.push(minutes.path);
 
@@ -96,15 +107,42 @@ hands.push(minutes);
 
 var hours = Object.create(hand);
 hours.r = 150;
-hours.hue = 2/3;
+hours.hue = 2/5;
 hours.ticks = 24;
 hours.value = 0;
 
-clock.push(hours.dots());
+clock.push(hours.drawDots());
 hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
 clock.push(hours.path);
 
 hands.push(hours);
+
+
+var days = Object.create(hand);
+days.r = 100;
+days.hue = 3/5;
+days.ticks = 31;
+days.value = 0;
+
+clock.push(days.drawDots());
+days.path = paper.path().attr({hand: [100, 0, 0], "stroke-width": "20px"});
+clock.push(days.path);
+
+hands.push(days);
+
+
+var months = Object.create(hand);
+months.r = 50;
+months.hue = 4/5;
+months.ticks = 12;
+months.value = 0;
+
+clock.push(months.drawDots());
+months.path = paper.path().attr({hand: [50, 0, 0], "stroke-width": "20px"});
+clock.push(months.path);
+
+hands.push(months);
+
 
 
 // transform everything.
@@ -116,16 +154,32 @@ var now = new Date();
 seconds.set(now.getSeconds());
 minutes.set(now.getMinutes());
 hours.set(now.getHours());
-/*
- * seconds.set(57);
- * minutes.set(59);
- * hours.set(23);
- */
+days.set(now.getDate());
+months.set(now.getMonth());
+var year = now.getYear();
+
+seconds.set(57);
+minutes.set(59);
+hours.set(23);
+days.set(30);
+months.set(11);
 
 function tick() {
+    // Tick all neccassary hands.
     var theHand = 0;
     do {
         hands[theHand].tick();
     } while (hands[theHand].value === 0 && ++theHand < hands.length)
+
+
+    // If we have a new month we have to recalculate days.
+    if(days.value === 0) {
+       days.ticks = daysInMonth(months.value, year);
+       days.ticks = 4;
+
+       days.clearDots();
+       clock.push(days.drawDots());
+       clock.transform(transform);
+    }
 }
 setInterval(tick, 1000);
