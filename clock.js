@@ -42,7 +42,7 @@ var hand = {
     },
 
     set: function(s) {
-        this.path.animate({hand: [this.r, 2 * Math.PI * s / this.ticks, this.hue]}, 600, "<");
+        this.path.animate({hand: [this.r, 2 * Math.PI * (s === this.ticks ? s - 0.01 : s) / this.ticks, this.hue]}, 600, "<");
         this.value = s;
 
         this.htmlElement.innerHTML = this.writeModifier(this.value);
@@ -55,13 +55,13 @@ var hand = {
         var cb = function() {};
         var effect = "elastic";
 
-        if(this.value === this.ticks) {
+        if(this.value === this.ticks && this.useAnimationCb) {
             effect = "bounce";
             cb = function() { self.path.attr({ hand: [self.r, 0, 0] }) };
         }
 
         this.path.animate({hand: [this.r, 2 * Math.PI * this.value / this.ticks, this.hue]}, 400, effect, cb);
-        if (this.value === this.ticks) this.value -= this.ticks;
+        if (this.value >= this.ticks) this.value -= this.ticks;
 
         this.htmlElement.innerHTML = this.writeModifier(this.value);
     },
@@ -93,6 +93,7 @@ seconds.hue = 0;
 seconds.ticks = 60;
 seconds.value = 0;
 seconds.htmlElement = document.getElementById("seconds");
+seconds.useAnimationCb = true;
 
 clock.push(seconds.drawDots());
 seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
@@ -107,6 +108,7 @@ minutes.hue = 1/5;
 minutes.ticks = 60;
 minutes.value = 0;
 minutes.htmlElement = document.getElementById("minutes");
+minutes.useAnimationCb = true;
 
 clock.push(minutes.drawDots());
 minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
@@ -121,6 +123,7 @@ hours.hue = 2/5;
 hours.ticks = 24;
 hours.value = 0;
 hours.htmlElement = document.getElementById("hours");
+hours.useAnimationCb = true;
 
 clock.push(hours.drawDots());
 hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
@@ -132,12 +135,13 @@ hands.push(hours);
 var days = Object.create(hand);
 days.r = 100;
 days.hue = 3/5;
-days.ticks = daysInMonth(now.getMonth(), now.getYear());
+days.ticks = daysInMonth(now.getMonth() + 1, now.getYear());
 days.value = 0;
 days.htmlElement = document.getElementById("days");
 days.writeModifier = function(v) {
     return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][now.getDay()] + " " + v;
 }
+days.useAnimationCb = false;
 
 clock.push(days.drawDots());
 days.path = paper.path().attr({hand: [100, 0, 0], "stroke-width": "20px"});
@@ -154,8 +158,9 @@ months.value = 0;
 months.htmlElement = document.getElementById("months");
 months.writeModifier = function(v) {
     return ["januari", "februari", "maart", "april", "mei", "juni", 
-            "juli", "augustus", "september", "oktober", "november", "december"][now.getMonth()];
+            "juli", "augustus", "september", "oktober", "november", "december"][v - 1];
 }
+months.useAnimationCb = false;
 
 clock.push(months.drawDots());
 months.path = paper.path().attr({hand: [50, 0, 0], "stroke-width": "20px"});
@@ -170,18 +175,16 @@ seconds.set(now.getSeconds());
 minutes.set(now.getMinutes());
 hours.set(now.getHours());
 days.set(now.getDate());
-months.set(now.getMonth());
+months.set(now.getMonth() );
 
 var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
-/*
- * seconds.set(57);
- * minutes.set(59);
- * hours.set(23);
- * days.set(29);
- * months.set(11);
- */
+seconds.set(57);
+minutes.set(59);
+hours.set(23);
+days.set(31);
+months.set(12);
 
 
 function tick() {
@@ -193,7 +196,7 @@ function tick() {
 
 
     // If we have a new month we have to recalculate days.
-    if(days.value === 0) {
+    if(days.value === 1) {
        days.ticks = daysInMonth(months.value, year);
        days.ticks = 4;
 
