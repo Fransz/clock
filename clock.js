@@ -1,3 +1,11 @@
+if(typeof Object.create !== "function") {
+    Object.create = function(obj) {
+        var F = function () {};
+        F.prototype = o;
+        return new F();
+    }
+}
+
 var paper = Raphael("canvas", 821, 621);
 paper.rect(10, 10, 810, 610).attr({fill: "black"});
 
@@ -18,66 +26,78 @@ paper.customAttributes.hand = function(r, a, color) {
 var clock = paper.set();
 var transform = "m0,-1,-1,0,400,300";
 
-clock.push(dots(250, 60));
-clock.push(dots(200, 60));
-clock.push(dots(150, 60));
-
-// var seconds = paper.path().attr({ hand: [250, 0 * Math.PI / 3, 0], "stroke-width": "20px"});
-var seconds = {
-    r: 250,
-    hue: 0,
-    ticks: 60,
-    seconds: 0,
-
-    path: paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"}),
-
+var hand = {
     set: function(s) {
         this.path.animate({hand: [this.r, 2 * Math.PI * s / this.ticks, this.hue]}, 600, "<");
-        this.seconds = s;
+        this.value = s;
     },
 
     tick: function() {
-        this.seconds++;
+        this.value++;
 
         var self = this;
         var cb = function() {};
         var effect = "elastic";
 
-        if(this.seconds === this.ticks) {
+        if(this.value === this.ticks) {
             effect = "bounce";
             cb = function() { self.path.attr({ hand: [self.r, 0, 0] }) };
         }
 
-        this.path.animate({hand: [this.r, 2 * Math.PI * this.seconds / this.ticks, this.hue]}, 400, effect, cb);
-        if (this.seconds === this.ticks) this.seconds -= this.ticks;
+        this.path.animate({hand: [this.r, 2 * Math.PI * this.value / this.ticks, this.hue]}, 400, effect, cb);
+        if (this.value === this.ticks) this.value -= this.ticks;
 
+    },
+
+    dots: function () {
+        var dots = paper.set();
+        for(var d = 0; d < this.ticks; d++) {
+            dots.push(paper.circle(Math.cos(2 * Math.PI * d / this.ticks) * this.r, 
+                                Math.sin(2 * Math.PI * d / this.ticks) * this.r, 
+                                2).attr({fill: "#aaaaaa", "stroke-width": "0px"}));
+        }
+        return dots;
     }
 }
-var minutes = paper.path().attr({ hand: [200, 3 * Math.PI / 2, 1/3], "stroke-width": "20px"});
-var hours = paper.path().attr({ hand: [150, 3 * Math.PI / 2, 2/3], "stroke-width": "20px"});
 
+var seconds = Object.create(hand);
+seconds.r = 250;
+seconds.hue = 0;
+seconds.ticks = 60;
+seconds.value = 0;
+
+clock.push(seconds.dots());
+seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
 clock.push(seconds.path);
-clock.push(minutes);
-clock.push(hours);
+
+var minutes = Object.create(hand);
+minutes.r = 200;
+minutes.hue = 1/3;
+minutes.ticks = 60;
+minutes.value = 0;
+
+clock.push(minutes.dots());
+minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
+clock.push(minutes.path);
+
+var hours = Object.create(hand);
+hours.r = 150;
+hours.hue = 2/3;
+hours.ticks = 24;
+hours.value = 0;
+
+clock.push(hours.dots());
+hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
+clock.push(hours.path);
 
 clock.transform(transform);
 
-// seconds.animate({hand: [250, 2 * Math.PI / 3, 0]}, 800, "<");
 var now = new Date();
 
-// seconds.set(now.getSeconds());
 seconds.set(57);
+minutes.set(59);
+hours.set(11);
 function tick() {
     seconds.tick();
 }
 setInterval(tick, 1000);
-
-function dots(r, cnt) {
-    var dots = paper.set();
-    for(var d = 0; d < cnt; d++) {
-        dots.push(paper.circle(Math.cos(2 * Math.PI * d / cnt) * r, 
-                               Math.sin(2 * Math.PI * d / cnt) * r, 
-                               2).attr({fill: "#aaaaaa", "stroke-width": "0px"}));
-    }
-    return dots;
-}
