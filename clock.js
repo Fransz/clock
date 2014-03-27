@@ -63,6 +63,21 @@ paper.customAttributes.hand = function(r, a, color) {
 // Our hands.
 var hand = {
     /**
+     * Initializes a hand with the given attributes, or sensible defaults.
+     */
+    init: function(attr) {
+        this.r = attr.r || 250;
+        this.hue = attr.hue || 0;
+        this.ticks = attr.ticks || 60;
+        this.offset = attr.offset || 0;
+        this.htmlElement = attr.htmlElement;
+
+        clock.push(this.drawDots());
+        this.path = paper.path().attr({hand: [this.r, 0, 0], "stroke-width": "20px"});
+        clock.push(this.path);
+    },
+
+    /**
      * The write modifier.
      * It is called before we write the value of this hand as text.
      * The default write modifier adds leading zero's.
@@ -150,80 +165,34 @@ var hand = {
 }
 
 var seconds = Object.create(hand);
-seconds.r = 250;
-seconds.hue = 0;
-seconds.ticks = 60;
-seconds.offset = 0;
-seconds.htmlElement = document.getElementById("seconds");
-
-clock.push(seconds.drawDots());
-seconds.path = paper.path().attr({hand: [250, 0, 0], "stroke-width": "20px"});
-clock.push(seconds.path);
-
+seconds.init({r: 250, hue: 0, ticks: 60, offset: 0, htmlElement: document.getElementById("seconds")})
 hands.push(seconds);
 
 
 var minutes = Object.create(hand);
-minutes.r = 200;
-minutes.hue = 1/5;
-minutes.ticks = 60;
-minutes.offset = 0;
-minutes.htmlElement = document.getElementById("minutes");
-
-clock.push(minutes.drawDots());
-minutes.path = paper.path().attr({hand: [200, 0, 0], "stroke-width": "20px"});
-clock.push(minutes.path);
-
+minutes.init({r: 200, hue: 1/5, ticks: 60, offset: 0, htmlElement: document.getElementById("minutes")})
 hands.push(minutes);
 
 
 var hours = Object.create(hand);
-hours.r = 150;
-hours.hue = 2/5;
-hours.ticks = 24;
-hours.offset = 0;
-hours.htmlElement = document.getElementById("hours");
-
-clock.push(hours.drawDots());
-hours.path = paper.path().attr({hand: [150, 0, 0], "stroke-width": "20px"});
-clock.push(hours.path);
-
+hours.init({r: 150, hue: 2/5, ticks: 24, offset: 0, htmlElement: document.getElementById("hours")})
 hands.push(hours);
 
 
 var days = Object.create(hand);
-days.r = 100;
-days.hue = 3/5;
-days.ticks = daysInMonth(now.getMonth(), now.getFullYear());
-days.offset = 1;
-days.htmlElement = document.getElementById("days");
+days.init({r: 100, hue: 3/5, ticks: daysInMonth(now.getMonth(), now.getFullYear()), offset: 1, htmlElement: document.getElementById("days")})
+hands.push(days);
 days.writeModifier = function(v, t) {
     return v === 0 ? t : v;
 }
 
-clock.push(days.drawDots());
-days.path = paper.path().attr({hand: [100, 0, 0], "stroke-width": "20px"});
-clock.push(days.path);
-
-hands.push(days);
-
-
 var months = Object.create(hand);
-months.r = 50;
-months.hue = 4/5;
-months.ticks = 12;
-months.offset = 1;
-months.htmlElement = document.getElementById("months");
+months.init({r: 50, hue: 4/5, ticks: 12, offset: 1, htmlElement: document.getElementById("months")})
+hands.push(months);
 months.writeModifier = function(v) {
     return ["december", "januari", "februari", "maart", "april", "mei", "juni", 
             "juli", "augustus", "september", "oktober", "november"][v];
 }
-
-clock.push(months.drawDots());
-months.path = paper.path().attr({hand: [50, 0, 0], "stroke-width": "20px"});
-clock.push(months.path);
-
-hands.push(months);
 
 // transform everything.
 clock.transform(transform);
@@ -238,14 +207,12 @@ var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
 // 30 november
-/*
- * seconds.set(57);
- * minutes.set(59);
- * hours.set(23);
- * days.ticks = daysInMonth(10, now.getFullYear());
- * days.set(30);
- * months.set(11);
- */
+seconds.set(57);
+minutes.set(59);
+hours.set(23);
+days.ticks = daysInMonth(10, now.getFullYear());
+days.set(30);
+months.set(11);
 
 // 31 december,
 /*
