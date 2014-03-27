@@ -78,7 +78,7 @@ var hand = {
         if(s > this.ticks) s = this.ticks;
         if(s < 0) s = 0;
 
-        // Set the value, we want to tick to that.
+        // Set the value, we want to tick to that, show value.
         this.value = s;
         var tickTo = this.value;
 
@@ -90,7 +90,7 @@ var hand = {
         }
 
         this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 600, "<");
-        this.htmlElement.innerHTML = this.writeModifier(this.value);
+        this.htmlElement.innerHTML = this.writeModifier(this.value, this.ticks);
     },
 
     /**
@@ -101,7 +101,7 @@ var hand = {
         var cb = function() {};
         var effect = "elastic";
 
-        // Increase the value, we want to tick to that.
+        // Increase the value, we want to tick to that, show value.
         this.value++;
         var tickTo = this.value;
 
@@ -120,7 +120,7 @@ var hand = {
 
         // tick
         this.path.animate({hand: [this.r, 2 * Math.PI * tickTo / this.ticks, this.hue]}, 400, effect, cb);
-        this.htmlElement.innerHTML = this.writeModifier(this.value);
+        this.htmlElement.innerHTML = this.writeModifier(this.value, this.ticks);
     },
 
 
@@ -197,8 +197,8 @@ days.hue = 3/5;
 days.ticks = daysInMonth(now.getMonth(), now.getFullYear());
 days.offset = 1;
 days.htmlElement = document.getElementById("days");
-days.writeModifier = function(v) {
-    return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][now.getDay()] + " " + v;
+days.writeModifier = function(v, t) {
+    return v === 0 ? t : v;
 }
 
 clock.push(days.drawDots());
@@ -215,8 +215,8 @@ months.ticks = 12;
 months.offset = 1;
 months.htmlElement = document.getElementById("months");
 months.writeModifier = function(v) {
-    return ["januari", "februari", "maart", "april", "mei", "juni", 
-            "juli", "augustus", "september", "oktober", "november", "december"][now.getMonth()];
+    return ["december", "januari", "februari", "maart", "april", "mei", "juni", 
+            "juli", "augustus", "september", "oktober", "november"][v];
 }
 
 clock.push(months.drawDots());
@@ -238,20 +238,24 @@ var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
 // 30 november
-// seconds.set(57);
-// minutes.set(59);
-// hours.set(23);
-// days.ticks = daysInMonth(10, now.getFullYear());
-// days.set(30);
-// months.set(11);
+/*
+ * seconds.set(57);
+ * minutes.set(59);
+ * hours.set(23);
+ * days.ticks = daysInMonth(10, now.getFullYear());
+ * days.set(30);
+ * months.set(11);
+ */
 
 // 31 december,
-seconds.set(57);
-minutes.set(59);
-hours.set(23);
-days.ticks = daysInMonth(11, now.getFullYear());
-days.set(31);
-months.set(12);
+/*
+ * seconds.set(57);
+ * minutes.set(59);
+ * hours.set(23);
+ * days.ticks = daysInMonth(11, now.getFullYear());
+ * days.set(31);
+ * months.set(12);
+ */
 
 
 /**
