@@ -30,9 +30,15 @@ paper.rect(0, 0, 800, 600).attr({fill: "black"});
 var now = new Date();
 
 /**
- * Get the days in a given month by getting day 0 of the next month.
+ * Get the days in a given month by getting the day of the month, of day 0 of the next month.
+ *
+ * @param month The month for which we want to know the days in the month. 0 .. 11.
+ * @param year The year for which we want to know the days in the given month. A four digit year.
+ *
+ * @return The number of days in the given month.
  */
 function daysInMonth(month, year) {
+    if (month == 11) month = -1, year -= 1;
     return new Date(year, month + 1, 0).getDate();
 }
 
@@ -79,7 +85,7 @@ var hand = {
         // Value on its limit, sme adjustments.
         if (this.value === this.ticks)  {
             this.value = 0;
-            tickTo -= 0.01;
+            tickTo -= 0.001;
             effect = "";
         }
 
@@ -102,12 +108,12 @@ var hand = {
         // Value on its limit, sme adjustments.
         if (this.value === this.ticks)  {
             this.value = 0;
-            tickTo -= 0.01;
+            tickTo -= 0.001;
             effect = "";
         }
 
         // Reset our hand after ticking. On different ticks for time and date.
-        if(this.value === this.startTick) {
+        if(this.value === this.offset) {
             effect = "";
             cb = function() { self.path.attr({ hand: [self.r, 2 * Math.PI * self.value / self.ticks, 0] }) };
         }
@@ -147,7 +153,7 @@ var seconds = Object.create(hand);
 seconds.r = 250;
 seconds.hue = 0;
 seconds.ticks = 60;
-seconds.startTick = 0;
+seconds.offset = 0;
 seconds.htmlElement = document.getElementById("seconds");
 
 clock.push(seconds.drawDots());
@@ -161,7 +167,7 @@ var minutes = Object.create(hand);
 minutes.r = 200;
 minutes.hue = 1/5;
 minutes.ticks = 60;
-minutes.startTick = 0;
+minutes.offset = 0;
 minutes.htmlElement = document.getElementById("minutes");
 
 clock.push(minutes.drawDots());
@@ -175,7 +181,7 @@ var hours = Object.create(hand);
 hours.r = 150;
 hours.hue = 2/5;
 hours.ticks = 24;
-hours.startTick = 0;
+hours.offset = 0;
 hours.htmlElement = document.getElementById("hours");
 
 clock.push(hours.drawDots());
@@ -188,8 +194,8 @@ hands.push(hours);
 var days = Object.create(hand);
 days.r = 100;
 days.hue = 3/5;
-days.ticks = daysInMonth(now.getMonth(), now.getYear());
-days.startTick = 1;
+days.ticks = daysInMonth(now.getMonth(), now.getFullYear());
+days.offset = 1;
 days.htmlElement = document.getElementById("days");
 days.writeModifier = function(v) {
     return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][now.getDay()] + " " + v;
@@ -206,7 +212,7 @@ var months = Object.create(hand);
 months.r = 50;
 months.hue = 4/5;
 months.ticks = 12;
-months.startTick = 1;
+months.offset = 1;
 months.htmlElement = document.getElementById("months");
 months.writeModifier = function(v) {
     return ["januari", "februari", "maart", "april", "mei", "juni", 
@@ -240,12 +246,12 @@ document.getElementById("years").innerHTML = now.getFullYear();
 // months.set(11);
 
 // 31 december,
-// seconds.set(57);
-// minutes.set(59);
-// hours.set(23);
-// days.ticks = daysInMonth(11, now.getYear());
-// days.set(31);
-// months.set(12);
+seconds.set(57);
+minutes.set(59);
+hours.set(23);
+days.ticks = daysInMonth(11, now.getFullYear());
+days.set(31);
+months.set(12);
 
 
 /**
@@ -257,11 +263,11 @@ function tick() {
     var theHand = 0;
     do {
         hands[theHand].tick();
-    } while (hands[theHand].value === hands[theHand].startTick && ++theHand < hands.length)
+    } while (hands[theHand].value === hands[theHand].offset && ++theHand < hands.length)
 
 
     // If we have a new month we have to recalculate days.
-    if(days.value === days.startTick) {
+    if(days.value === days.offset) {
        days.ticks = daysInMonth(months.value, year);
 
        days.clearDots();
