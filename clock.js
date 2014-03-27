@@ -1,3 +1,15 @@
+/**
+ * Clock.js
+ *
+ * @author Frans Jaspers <fjaspers@xs4all.nl>
+ * @see
+ *
+ * This clock shows passed hours:minutes:seconds, and the current day:month.
+ */
+
+/**
+ * Add a method to the Object object for setting another objects prototype.
+ */
 if(typeof Object.create !== "function") {
     Object.create = function(obj) {
         var F = function () {};
@@ -17,12 +29,19 @@ paper.rect(0, 0, 800, 600).attr({fill: "black"});
 
 var now = new Date();
 
+/**
+ * Get the days in a given month by getting day 0 of the next month.
+ */
 function daysInMonth(month, year) {
     return new Date(year, month + 1, 0).getDate();
 }
 
+/**
+ * A custom attribute of raphaels paper.
+ * It returns an oobject with two attributes, path and fill.
+ * The attribute can be animated.
+ */
 paper.customAttributes.hand = function(r, a, color) {
-
     var hsb = "hsb(".concat(color, ",", a / (2 * Math.PI) , ", .75)");
     var large = a > Math.PI  && a < 2 * Math.PI ? 1 : 0;
     var ex = Math.cos(a) * r;
@@ -37,6 +56,11 @@ paper.customAttributes.hand = function(r, a, color) {
 
 // Our hands.
 var hand = {
+    /**
+     * The write modifier.
+     * It is called before we write the value of this hand as text.
+     * The default write modifier adds leading zero's.
+     */
     writeModifier: function(v) {
         return v < 10 ? "0" + v : v;
     },
@@ -202,18 +226,18 @@ seconds.set(now.getSeconds());
 minutes.set(now.getMinutes());
 hours.set(now.getHours());
 days.set(now.getDate());
-months.set(now.getMonth());
+months.set(now.getMonth() + 1);
 
 var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
 // 30 november
-seconds.set(57);
-minutes.set(59);
-hours.set(23);
-days.ticks = daysInMonth(10, now.getFullYear());
-days.set(30);
-months.set(11);
+// seconds.set(57);
+// minutes.set(59);
+// hours.set(23);
+// days.ticks = daysInMonth(10, now.getFullYear());
+// days.set(30);
+// months.set(11);
 
 // 31 december,
 // seconds.set(57);
@@ -224,8 +248,12 @@ months.set(11);
 // months.set(12);
 
 
+/**
+ * The ticker function. It is called every 1000ms.
+ * It ticks all hands starting with the seconds hand, until a hand was not reset.
+ */
 function tick() {
-    // Tick all neccassary hands.
+    // Tick all hands until the current hand was not reset.
     var theHand = 0;
     do {
         hands[theHand].tick();
