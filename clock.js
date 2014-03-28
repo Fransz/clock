@@ -207,12 +207,14 @@ var year = now.getYear();
 document.getElementById("years").innerHTML = now.getFullYear();
 
 // 30 november
-seconds.set(57);
-minutes.set(59);
-hours.set(23);
-days.ticks = daysInMonth(10, now.getFullYear());
-days.set(30);
-months.set(11);
+/*
+ * seconds.set(57);
+ * minutes.set(59);
+ * hours.set(23);
+ * days.ticks = daysInMonth(10, now.getFullYear());
+ * days.set(30);
+ * months.set(11);
+ */
 
 // 31 december,
 /*
