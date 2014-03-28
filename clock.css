@@ -1,8 +1,18 @@
+body {
+    background-color: black;
+}
+#canvas {
+    width: 800px;
+    margin:0 auto;
+}
+
 #written {
-    width:100%;
-    margin:0 auto 0 auto;
+    width:800px;
+    margin:0 auto;
 
     font-size: 48px;
+    text-align:center;
+
     background-color: black;
     color:white;
 }
